@@ -1,11 +1,16 @@
 import { getMercadoLibreConfig } from '../../../lib/mercadolibreAuth';
 
-async function check(url: string, accessToken: string) {
+async function check(url: string, accessToken?: string) {
+  const headers: HeadersInit = {
+    Accept: 'application/json',
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
   const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/json',
-    },
+    headers,
   });
 
   let body: any = null;
@@ -21,7 +26,8 @@ async function check(url: string, accessToken: string) {
     ok: response.ok,
     error: body?.error || null,
     message: body?.message || null,
-    scopes: body?.grants?.flatMap((grant: any) => grant.scopes || []) || null,
+    scopes:
+      body?.grants?.flatMap((grant: any) => grant.scopes || []) || null,
     body,
   };
 }
@@ -30,34 +36,51 @@ export async function GET({ cookies }) {
   const accessToken = cookies.get('ml_access_token')?.value;
 
   if (!accessToken) {
-    return new Response(JSON.stringify({
-      error: 'No hay sesión OAuth en este navegador',
-      next: '/api/ml/authorize',
-    }), {
-      status: 401,
-      headers: { 'content-type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        error: 'No hay sesión OAuth en este navegador',
+        next: '/api/ml/authorize',
+      }),
+      {
+        status: 401,
+        headers: { 'content-type': 'application/json' },
+      }
+    );
   }
 
-const [me, search, application, site, categories] = await Promise.all([
-  check('https://api.mercadolibre.com/users/me', accessToken),
-  check(
-    'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1',
-    accessToken
-  ),
-  check(
-    `https://api.mercadolibre.com/applications/${getMercadoLibreConfig().appId}`,
-    accessToken
-  ),
-  check(
-    'https://api.mercadolibre.com/sites/MLA',
-    accessToken
-  ),
-  check(
-    'https://api.mercadolibre.com/sites/MLA/categories',
-    accessToken
-  ),
-]);
+  const [me, search, searchPublic, application, site, categories] =
+    await Promise.all([
+      check(
+        'https://api.mercadolibre.com/users/me',
+        accessToken
+      ),
+
+      // Búsqueda CON token
+      check(
+        'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1',
+        accessToken
+      ),
+
+      // Búsqueda SIN token
+      check(
+        'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1'
+      ),
+
+      check(
+        `https://api.mercadolibre.com/applications/${getMercadoLibreConfig().appId}`,
+        accessToken
+      ),
+
+      check(
+        'https://api.mercadolibre.com/sites/MLA',
+        accessToken
+      ),
+
+      check(
+        'https://api.mercadolibre.com/sites/MLA/categories',
+        accessToken
+      ),
+    ]);
 
   const { appId } = getMercadoLibreConfig();
 
@@ -66,19 +89,24 @@ const [me, search, application, site, categories] = await Promise.all([
     accessToken
   );
 
-return new Response(JSON.stringify({
-  usersMe: me,
-  search,
-  application,
-  site,
-  categories,
-  grants,
-    interpretation: me.ok && !search.ok
-      ? 'El token es válido, pero MercadoLibre rechaza el endpoint de búsqueda.'
-      : !me.ok
-        ? 'El token o la autorización fueron rechazados.'
-        : 'Ambos endpoints respondieron correctamente.',
-  }), {
-    headers: { 'content-type': 'application/json' },
-  });
+  return new Response(
+    JSON.stringify({
+      usersMe: me,
+      search,
+      searchPublic,
+      application,
+      site,
+      categories,
+      grants,
+      interpretation:
+        me.ok && !search.ok
+          ? 'El token es válido, pero MercadoLibre rechaza el endpoint de búsqueda.'
+          : !me.ok
+            ? 'El token o la autorización fueron rechazados.'
+            : 'Ambos endpoints respondieron correctamente.',
+    }),
+    {
+      headers: { 'content-type': 'application/json' },
+    }
+  );
 }
