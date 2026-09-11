@@ -15,13 +15,14 @@ async function check(url: string, accessToken: string) {
     body = { message: 'Respuesta no JSON' };
   }
 
-  return {
-    status: response.status,
-    ok: response.ok,
-    error: body?.error || null,
-    message: body?.message || null,
-    scopes: body?.grants?.flatMap((grant: any) => grant.scopes || []) || null,
-  };
+ return {
+  status: response.status,
+  ok: response.ok,
+  error: body?.error || null,
+  message: body?.message || null,
+  scopes: body?.grants?.flatMap((grant: any) => grant.scopes || []) || null,
+  body,
+};
 }
 
 export async function GET({ cookies }) {
