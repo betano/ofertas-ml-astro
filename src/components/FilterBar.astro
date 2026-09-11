@@ -1,0 +1,52 @@
+---
+import { Smartphone, Home, Shirt, Grid3X3 } from '@lucide/astro';
+import { categorias } from '../data/ofertas';
+
+interface Props {
+  categoriaActiva?: string;
+}
+
+const { categoriaActiva = 'todas' } = Astro.props;
+
+const iconMap: Record<string, any> = {
+  Grid3X3,
+  Smartphone,
+  Home,
+  Shirt,
+};
+---
+
+<div class="sticky top-16 lg:top-20 z-40 backdrop-blur-xl bg-[#0a0a0f]/90 border-b border-white/5 py-4">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      {categorias.map((cat) => {
+        const Icon = iconMap[cat.icono] || Grid3X3;
+        const isActive = categoriaActiva === cat.id;
+        return (
+          <a
+            href={cat.id === 'todas' ? '/' : `/${cat.id}`}
+            class:list={[
+              "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all",
+              isActive 
+                ? "bg-ml-yellow text-black shadow-lg shadow-ml-yellow/20" 
+                : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10"
+            ]}
+          >
+            <Icon class="w-4 h-4" />
+            {cat.nombre}
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</div>
+
+<style>
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>

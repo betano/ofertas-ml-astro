@@ -1,0 +1,115 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { ofertas, formatearPrecio } from '../../data/ofertas';
+import { Truck, Star, ExternalLink, TrendingDown, Clock, Shield, RotateCcw, ChevronLeft } from '@lucide/astro';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return ofertas.map(o => ({
+    params: { id: o.id },
+    props: { oferta: o },
+  }));
+}
+
+const { oferta } = Astro.props;
+const ahorro = oferta.precioOriginal - oferta.precioOferta;
+---
+
+<Layout title={`${oferta.titulo} - OfertasML`} description={`${oferta.descuento}% de descuento en ${oferta.titulo}. Ahora a ${formatearPrecio(oferta.precioOferta)}`}>
+  <Header />
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <!-- Breadcrumb -->
+    <a href="/" class="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-ml-yellow transition-colors mb-6">
+      <ChevronLeft class="w-4 h-4" />
+      Volver a ofertas
+    </a>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <!-- Imagen -->
+      <div class="relative aspect-square rounded-3xl bg-gradient-to-b from-white/5 to-transparent p-8 lg:p-12 flex items-center justify-center border border-white/10">
+        {oferta.etiqueta && (
+          <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-ml-yellow text-black text-xs font-bold">
+            {oferta.etiqueta}
+          </span>
+        )}
+        <div class="absolute top-4 right-4 w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex flex-col items-center justify-center text-white shadow-lg">
+          <span class="text-sm font-bold leading-none">-{oferta.descuento}%</span>
+          <span class="text-[9px] opacity-80">OFF</span>
+        </div>
+        <img 
+          src={oferta.imagen} 
+          alt={oferta.titulo}
+          class="max-h-full max-w-full object-contain"
+          onerror="this.src='https://via.placeholder.com/500x500/1a1a2e/FFE600?text=OfertaML'"
+        />
+      </div>
+
+      <!-- Info -->
+      <div class="flex flex-col justify-center">
+        <span class="text-sm font-medium text-ml-yellow uppercase tracking-wider">{oferta.categoria}</span>
+
+        <h1 class="text-2xl lg:text-4xl font-black text-white mt-2 leading-tight">{oferta.titulo}</h1>
+
+        <div class="flex items-center gap-3 mt-4">
+          <div class="flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star class:list={["w-5 h-5", i < Math.floor(oferta.rating) ? "text-ml-yellow fill-ml-yellow" : "text-gray-600"]} />
+            ))}
+          </div>
+          <span class="text-gray-400">{oferta.rating} ({oferta.reviews.toLocaleString()} opiniones)</span>
+          <span class="text-gray-600">|</span>
+          <span class="text-green-400 text-sm">{oferta.vendidos} vendidos</span>
+        </div>
+
+        <!-- Precios -->
+        <div class="mt-8 p-6 rounded-2xl bg-white/5 border border-white/10">
+          <div class="flex items-baseline gap-3">
+            <span class="text-4xl lg:text-5xl font-black text-white">{formatearPrecio(oferta.precioOferta)}</span>
+            <span class="text-lg text-gray-400 line-through">{formatearPrecio(oferta.precioOriginal)}</span>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <TrendingDown class="w-4 h-4 text-green-400" />
+            <span class="text-green-400 font-medium">Ahorrás {formatearPrecio(ahorro)} ({oferta.descuento}% OFF)</span>
+          </div>
+          <div class="mt-3 text-gray-400">{oferta.cuotas}</div>
+        </div>
+
+        <!-- Features -->
+        <div class="grid grid-cols-2 gap-3 mt-6">
+          {[
+            { icon: Truck, text: oferta.envioGratis ? 'Envío gratis' : 'Envío a acordar', color: oferta.envioGratis ? 'text-green-400' : 'text-gray-400' },
+            { icon: Shield, text: 'Garantía oficial', color: 'text-blue-400' },
+            { icon: RotateCcw, text: 'Devolución gratis', color: 'text-purple-400' },
+            { icon: Clock, text: 'Entrega rápida', color: 'text-orange-400' },
+          ].map((feat) => (
+            <div class="flex items-center gap-2 text-sm">
+              <feat.icon class:list={["w-4 h-4", feat.color]} />
+              <span class="text-gray-300">{feat.text}</span>
+            </div>
+          ))}
+        </div>
+
+        <!-- CTA -->
+        <a 
+          href={oferta.linkAfiliado}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-8 flex items-center justify-center gap-3 w-full py-4 bg-ml-yellow hover:bg-yellow-300 text-black font-bold text-lg rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-ml-yellow/25"
+        >
+          <ExternalLink class="w-5 h-5" />
+          Ver oferta en Mercado Libre
+        </a>
+
+        <p class="text-xs text-gray-500 text-center mt-3">
+          Link de afiliado. Comprando a través de este link apoyás el proyecto sin costo extra.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

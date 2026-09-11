@@ -1,0 +1,75 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { 
+  title = 'OfertasML - Las mejores ofertas de Mercado Libre',
+  description = 'Encontrá las mejores ofertas y descuentos de Mercado Libre. Ahorrá en tecnología, hogar, moda y más.'
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#FFE600" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <title>{title}</title>
+
+  <style is:global>
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0a0a0f;
+      color: #ffffff;
+    }
+    ::selection {
+      background: #FFE600;
+      color: #0a0a0f;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #FFE600 0%, #FFA500 50%, #FF6B35 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px -10px rgba(255, 230, 0, 0.15);
+    }
+    .shine-border {
+      position: relative;
+      overflow: hidden;
+    }
+    .shine-border::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(90deg, transparent, rgba(255,230,0,0.3), transparent);
+      background-size: 200% 100%;
+      animation: shine 3s linear infinite;
+      border-radius: inherit;
+      z-index: -1;
+    }
+    @keyframes shine {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0a0a0f] text-white antialiased">
+  <slot />
+</body>
+</html>

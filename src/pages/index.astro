@@ -1,0 +1,81 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import FilterBar from '../components/FilterBar.astro';
+import ProductGrid from '../components/ProductGrid.astro';
+import Footer from '../components/Footer.astro';
+import type { Oferta } from '../data/ofertas';
+import { ofertas as ofertasLocales } from '../data/ofertas';
+import { getAutomaticDeals } from '../lib/mercadolibre';
+import { getStoredMercadoLibreTokens } from '../lib/mercadolibreTokenStore';
+
+function categoriaPara(titulo: string): Oferta['categoria'] {
+  const texto = titulo.toLowerCase();
+  if (/zapatilla|campera|remera|pantalon|moda/.test(texto)) return 'moda';
+  if (/cafetera|cocina|hogar|sillon|aspiradora/.test(texto)) return 'hogar';
+  return 'tecnologia';
+}
+
+function convertirOferta(item): Oferta {
+  return {
+    id: item.id,
+    titulo: item.title,
+    categoria: categoriaPara(item.title),
+    imagen: item.thumbnail || '',
+    precioOriginal: item.original_price || item.price || 0,
+    precioOferta: item.price || 0,
+    descuento: item.discount,
+    rating: 0,
+    reviews: 0,
+    vendidos: 0,
+    envioGratis: Boolean(item.shipping?.free_shipping),
+    cuotas: 'Consultar cuotas en MercadoLibre',
+    etiqueta: item.discount >= 30 ? 'OFERTA RELAMPAGO' : undefined,
+    linkAfiliado: item.affiliate_link || item.permalink,
+  };
+}
+
+let ofertasAutomaticas: Oferta[] = [];
+try {
+  const accessToken = Astro.cookies.get('ml_access_token')?.value;
+  const storedTokens = await getStoredMercadoLibreTokens();
+  const automaticas = await getAutomaticDeals({
+    top: 8,
+    accessToken: accessToken || process.env.ML_ACCESS_TOKEN || storedTokens?.access_token,
+  });
+  ofertasAutomaticas = automaticas.bestDeals.map(convertirOferta);
+} catch {
+  // The local catalog keeps the preview available until OAuth is configured.
+}
+
+const ofertasParaMostrar = ofertasAutomaticas.length ? ofertasAutomaticas : ofertasLocales;
+---
+
+<Layout>
+  <Header />
+  <Hero />
+  <FilterBar categoriaActiva="todas" />
+  <ProductGrid ofertasExternas={ofertasParaMostrar} />
+
+  <!-- Newsletter / CTA Section -->
+  <section class="py-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-ml-yellow/10 via-transparent to-ml-yellow/10"></div>
+    <div class="relative max-w-4xl mx-auto px-4 text-center">
+      <h2 class="text-3xl lg:text-4xl font-black mb-4">¿No querés perderte ninguna oferta?</h2>
+      <p class="text-gray-400 mb-8">Próximamente: alertas personalizadas para tus productos favoritos.</p>
+      <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+        <input 
+          type="email" 
+          placeholder="tu@email.com" 
+          class="flex-1 px-5 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-ml-yellow/50"
+        />
+        <button class="px-6 py-3 bg-ml-yellow text-black font-bold rounded-xl hover:bg-yellow-300 transition-all">
+          Suscribirme
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

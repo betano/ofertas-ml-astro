@@ -1,0 +1,71 @@
+---
+import { Zap, Heart, ExternalLink } from '@lucide/astro';
+---
+
+<footer class="border-t border-white/5 bg-[#050508]">
+  <!-- Disclaimer -->
+  <div class="bg-ml-yellow/5 border-b border-ml-yellow/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <p class="text-xs text-gray-400 text-center">
+        <span class="text-ml-yellow font-medium">Disclaimer:</span> Este sitio participa en el Programa de Afiliados de Mercado Libre. 
+        Los links de este sitio son links de afiliado y pueden generar comisiones. Los precios y disponibilidad están sujetos a cambio sin previo aviso.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Brand -->
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-ml-yellow flex items-center justify-center">
+            <Zap class="w-4 h-4 text-black" />
+          </div>
+          <span class="text-lg font-black">Ofertas<span class="text-ml-yellow">ML</span></span>
+        </div>
+        <p class="text-sm text-gray-400 leading-relaxed">
+          Encontramos las mejores ofertas de Mercado Libre para que ahorres tiempo y plata. 
+          Actualizamos nuestro catálogo cada 6 horas.
+        </p>
+      </div>
+
+      <!-- Links -->
+      <div>
+        <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Categorías</h4>
+        <ul class="space-y-2">
+          {['Tecnología', 'Hogar', 'Moda', 'Deportes', 'Belleza'].map((cat) => (
+            <li>
+              <a href={`/${cat.toLowerCase()}`} class="text-sm text-gray-400 hover:text-ml-yellow transition-colors">
+                {cat}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <div>
+        <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Legal</h4>
+        <ul class="space-y-2">
+          {['Términos de uso', 'Política de privacidad', 'Programa de afiliados ML'].map((link) => (
+            <li>
+              <a href="#" class="text-sm text-gray-400 hover:text-ml-yellow transition-colors inline-flex items-center gap-1">
+                {link}
+                <ExternalLink class="w-3 h-3" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-xs text-gray-500">
+        © 2026 OfertasML. Todos los derechos reservados.
+      </p>
+      <p class="text-xs text-gray-500 flex items-center gap-1">
+        Hecho con <Heart class="w-3 h-3 text-red-500 fill-red-500" /> para ahorradores
+      </p>
+    </div>
+  </div>
+</footer>
