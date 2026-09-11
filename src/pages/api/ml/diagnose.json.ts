@@ -39,17 +39,25 @@ export async function GET({ cookies }) {
     });
   }
 
-  const [me, search, application] = await Promise.all([
-    check('https://api.mercadolibre.com/users/me', accessToken),
-    check(
-      'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1',
-      accessToken
-    ),
-    check(
-      `https://api.mercadolibre.com/applications/${getMercadoLibreConfig().appId}`,
-      accessToken
-    ),
-  ]);
+const [me, search, application, site, categories] = await Promise.all([
+  check('https://api.mercadolibre.com/users/me', accessToken),
+  check(
+    'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1',
+    accessToken
+  ),
+  check(
+    `https://api.mercadolibre.com/applications/${getMercadoLibreConfig().appId}`,
+    accessToken
+  ),
+  check(
+    'https://api.mercadolibre.com/sites/MLA',
+    accessToken
+  ),
+  check(
+    'https://api.mercadolibre.com/sites/MLA/categories',
+    accessToken
+  ),
+]);
 
   const { appId } = getMercadoLibreConfig();
 
@@ -58,11 +66,13 @@ export async function GET({ cookies }) {
     accessToken
   );
 
-  return new Response(JSON.stringify({
-    usersMe: me,
-    search,
-    application,
-    grants,
+return new Response(JSON.stringify({
+  usersMe: me,
+  search,
+  application,
+  site,
+  categories,
+  grants,
     interpretation: me.ok && !search.ok
       ? 'El token es válido, pero MercadoLibre rechaza el endpoint de búsqueda.'
       : !me.ok
