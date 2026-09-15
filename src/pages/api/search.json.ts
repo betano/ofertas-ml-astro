@@ -1,8 +1,6 @@
 import { getCache, setCache } from '../../lib/cache';
-import { refreshAccessToken } from '../../lib/mercadolibreAuth';
-import { getStoredMercadoLibreTokens, saveStoredMercadoLibreTokens } from '../../lib/mercadolibreTokenStore';
 
-export async function GET({ request, cookies }) {
+export async function GET({ request }) {
   const url = new URL(request.url);
   const q = url.searchParams.get('q') || '';
   const site = url.searchParams.get('site') || 'MLA';
@@ -10,17 +8,6 @@ export async function GET({ request, cookies }) {
 
   if (!q) {
     return new Response(JSON.stringify({ error: 'q is required' }), { status: 400, headers: { 'content-type': 'application/json' } });
-  }
-
-  const storedTokens = await getStoredMercadoLibreTokens();
-  let accessToken = cookies.get('ml_access_token')?.value
-    || process.env.ML_ACCESS_TOKEN
-    || storedTokens?.access_token;
-  if (!accessToken) {
-    return new Response(JSON.stringify({
-      error: 'Falta configurar ML_ACCESS_TOKEN en el servidor',
-      details: 'Copia .env.example a .env y agrega el token de tu aplicacion de MercadoLibre.',
-    }), { status: 503, headers: { 'content-type': 'application/json' } });
   }
 
   const cacheKey = `ml-search:${site}:${q}:${limit}`;
@@ -31,16 +18,10 @@ export async function GET({ request, cookies }) {
 
   try {
     const apiUrl = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=${limit}`;
-    const headers: HeadersInit = {};
-    headers.Authorization = `Bearer ${accessToken}`;
-    let res = await fetch(apiUrl, { headers });
-    if ((res.status === 401 || res.status === 403) && storedTokens?.refresh_token) {
-      const token = await refreshAccessToken(storedTokens.refresh_token);
-      await saveStoredMercadoLibreTokens(token);
-      accessToken = token.access_token;
-      headers.Authorization = `Bearer ${accessToken}`;
-      res = await fetch(apiUrl, { headers });
-    }
+
+    // Búsqueda pública: sin Authorization header.
+    // Con token (sin scope "search") ML responde 403.
+    const res = await fetch(apiUrl);
     if (!res.ok) {
       const text = await res.text();
       return new Response(JSON.stringify({ error: 'MercadoLibre API error', details: text }), { status: 502, headers: { 'content-type': 'application/json' } });

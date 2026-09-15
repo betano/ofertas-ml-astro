@@ -48,8 +48,9 @@ export async function GET({ cookies }) {
     );
   }
 
-  const [me, search, searchPublic, application, site, categories] =
+  const [me, search, searchPublic, application, site, categories, highlights] =
     await Promise.all([
+      // Usuario autenticado
       check(
         'https://api.mercadolibre.com/users/me',
         accessToken
@@ -66,18 +67,27 @@ export async function GET({ cookies }) {
         'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1'
       ),
 
+      // Datos de la aplicación
       check(
         `https://api.mercadolibre.com/applications/${getMercadoLibreConfig().appId}`,
         accessToken
       ),
 
+      // Datos del sitio MLA
       check(
         'https://api.mercadolibre.com/sites/MLA',
         accessToken
       ),
 
+      // Categorías
       check(
         'https://api.mercadolibre.com/sites/MLA/categories',
+        accessToken
+      ),
+
+      // Highlights de la categoría Notebooks
+      check(
+        'https://api.mercadolibre.com/highlights/MLA/category/MLA1652',
         accessToken
       ),
     ]);
@@ -97,6 +107,7 @@ export async function GET({ cookies }) {
       application,
       site,
       categories,
+      highlights,
       grants,
       interpretation:
         me.ok && !search.ok

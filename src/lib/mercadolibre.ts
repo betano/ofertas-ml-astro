@@ -78,11 +78,9 @@ function normalizeItem(item: any): MercadoLibreItem | null {
   };
 }
 
-async function search(query: string, site: string, limit: number, accessToken?: string) {
-  if (!accessToken) {
-    throw new Error('Falta ML_ACCESS_TOKEN. Configuralo en el archivo .env del servidor.');
-  }
-
+// Búsqueda PÚBLICA: NO se envía Authorization. ML rechaza el endpoint
+// de búsqueda si el token no tiene el scope "search".
+async function search(query: string, site: string, limit: number) {
   const cacheKey = `ml-deals:${site}:${query}:${limit}`;
   const cached = getCache(cacheKey);
   if (cached) return cached as MercadoLibreItem[];
@@ -92,10 +90,7 @@ async function search(query: string, site: string, limit: number, accessToken?: 
   apiUrl.searchParams.set('limit', String(limit));
   apiUrl.searchParams.set('sort', 'price_asc');
 
-  const headers: HeadersInit = {};
-  headers.Authorization = `Bearer ${accessToken}`;
-
-  const response = await fetch(apiUrl, { headers });
+  const response = await fetch(apiUrl);
   if (!response.ok) {
     const details = await response.text();
     throw new Error(`MercadoLibre respondió ${response.status}: ${details.slice(0, 500)}`);
@@ -107,9 +102,9 @@ async function search(query: string, site: string, limit: number, accessToken?: 
   return items;
 }
 
-export async function getAutomaticDeals({ site = 'MLA', perQuery = 20, top = 5, query, accessToken = process.env.ML_ACCESS_TOKEN } = {}) {
+export async function getAutomaticDeals({ site = 'MLA', perQuery = 20, top = 5, query } = {}) {
   const queries = query ? [query] : getDealQueries();
-  const lists = await Promise.all(queries.map((query) => search(query, site, perQuery, accessToken)));
+  const lists = await Promise.all(queries.map((query) => search(query, site, perQuery)));
   const unique = new Map<string, MercadoLibreItem>();
 
   lists.flat().forEach((item) => {
