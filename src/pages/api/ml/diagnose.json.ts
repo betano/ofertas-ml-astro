@@ -1,3 +1,4 @@
+```ts
 import { getMercadoLibreConfig } from '../../../lib/mercadolibreAuth';
 
 async function check(url: string, accessToken?: string) {
@@ -48,49 +49,63 @@ export async function GET({ cookies }) {
     );
   }
 
-  const [me, search, searchPublic, application, site, categories, highlights] =
-    await Promise.all([
-      // Usuario autenticado
-      check(
-        'https://api.mercadolibre.com/users/me',
-        accessToken
-      ),
+  const [
+    me,
+    search,
+    searchPublic,
+    searchCategory,
+    application,
+    site,
+    categories,
+    highlights,
+  ] = await Promise.all([
+    // Usuario autenticado
+    check(
+      'https://api.mercadolibre.com/users/me',
+      accessToken
+    ),
 
-      // Búsqueda CON token
-      check(
-        'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1',
-        accessToken
-      ),
+    // Búsqueda CON token usando texto
+    check(
+      'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1',
+      accessToken
+    ),
 
-      // Búsqueda SIN token
-      check(
-        'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1'
-      ),
+    // Búsqueda SIN token
+    check(
+      'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1'
+    ),
 
-      // Datos de la aplicación
-      check(
-        `https://api.mercadolibre.com/applications/${getMercadoLibreConfig().appId}`,
-        accessToken
-      ),
+    // Búsqueda CON token usando la categoría exacta de Notebooks
+    check(
+      'https://api.mercadolibre.com/sites/MLA/search?category=MLA1652&limit=1',
+      accessToken
+    ),
 
-      // Datos del sitio MLA
-      check(
-        'https://api.mercadolibre.com/sites/MLA',
-        accessToken
-      ),
+    // Datos de la aplicación
+    check(
+      `https://api.mercadolibre.com/applications/${getMercadoLibreConfig().appId}`,
+      accessToken
+    ),
 
-      // Categorías
-      check(
-        'https://api.mercadolibre.com/sites/MLA/categories',
-        accessToken
-      ),
+    // Datos del sitio MLA
+    check(
+      'https://api.mercadolibre.com/sites/MLA',
+      accessToken
+    ),
 
-      // Highlights de la categoría Notebooks
-      check(
-        'https://api.mercadolibre.com/highlights/MLA/category/MLA1652',
-        accessToken
-      ),
-    ]);
+    // Categorías
+    check(
+      'https://api.mercadolibre.com/sites/MLA/categories',
+      accessToken
+    ),
+
+    // Highlights de la categoría Notebooks (MLA1652)
+    check(
+      'https://api.mercadolibre.com/highlights/MLA/category/MLA1652',
+      accessToken
+    ),
+  ]);
 
   const { appId } = getMercadoLibreConfig();
 
@@ -104,6 +119,7 @@ export async function GET({ cookies }) {
       usersMe: me,
       search,
       searchPublic,
+      searchCategory,
       application,
       site,
       categories,
@@ -121,3 +137,4 @@ export async function GET({ cookies }) {
     }
   );
 }
+```
