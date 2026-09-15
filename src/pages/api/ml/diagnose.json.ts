@@ -1,4 +1,3 @@
-```ts
 import { getMercadoLibreConfig } from '../../../lib/mercadolibreAuth';
 
 async function check(url: string, accessToken?: string) {
@@ -49,6 +48,8 @@ export async function GET({ cookies }) {
     );
   }
 
+  const { appId } = getMercadoLibreConfig();
+
   const [
     me,
     search,
@@ -65,18 +66,18 @@ export async function GET({ cookies }) {
       accessToken
     ),
 
-    // Búsqueda CON token usando texto
+    // Búsqueda general CON token
     check(
       'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1',
       accessToken
     ),
 
-    // Búsqueda SIN token
+    // Búsqueda general SIN token
     check(
       'https://api.mercadolibre.com/sites/MLA/search?q=notebook&limit=1'
     ),
 
-    // Búsqueda CON token usando la categoría exacta de Notebooks
+    // Búsqueda por categoría CON token
     check(
       'https://api.mercadolibre.com/sites/MLA/search?category=MLA1652&limit=1',
       accessToken
@@ -84,7 +85,7 @@ export async function GET({ cookies }) {
 
     // Datos de la aplicación
     check(
-      `https://api.mercadolibre.com/applications/${getMercadoLibreConfig().appId}`,
+      `https://api.mercadolibre.com/applications/${appId}`,
       accessToken
     ),
 
@@ -94,47 +95,68 @@ export async function GET({ cookies }) {
       accessToken
     ),
 
-    // Categorías
+    // Categorías de MLA
     check(
       'https://api.mercadolibre.com/sites/MLA/categories',
       accessToken
     ),
 
-    // Highlights de la categoría Notebooks (MLA1652)
+    // Productos destacados / best sellers de Notebooks
     check(
       'https://api.mercadolibre.com/highlights/MLA/category/MLA1652',
       accessToken
     ),
   ]);
 
-  const { appId } = getMercadoLibreConfig();
-
+  // Permisos / grants de la aplicación
   const grants = await check(
     `https://api.mercadolibre.com/applications/${appId}/grants`,
     accessToken
   );
 
   return new Response(
-    JSON.stringify({
-      usersMe: me,
-      search,
-      searchPublic,
-      searchCategory,
-      application,
-      site,
-      categories,
-      highlights,
-      grants,
-      interpretation:
-        me.ok && !search.ok
-          ? 'El token es válido, pero MercadoLibre rechaza el endpoint de búsqueda.'
-          : !me.ok
-            ? 'El token o la autorización fueron rechazados.'
-            : 'Ambos endpoints respondieron correctamente.',
-    }),
+    JSON.stringify(
+      {
+        usersMe: me,
+
+        // Búsqueda general
+        search,
+
+        // Misma búsqueda sin Authorization
+        searchPublic,
+
+        // Búsqueda específica de Notebooks
+        searchCategory,
+
+        // Aplicación
+        application,
+
+        // Sitio
+        site,
+
+        // Categorías
+        categories,
+
+        // Highlights / best sellers
+        highlights,
+
+        // Permisos
+        grants,
+
+        interpretation:
+          me.ok && !search.ok
+            ? 'El token es válido, pero MercadoLibre rechaza el endpoint de búsqueda.'
+            : !me.ok
+              ? 'El token o la autorización fueron rechazados.'
+              : 'Ambos endpoints respondieron correctamente.',
+      },
+      null,
+      2
+    ),
     {
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+      },
     }
   );
 }
-```
